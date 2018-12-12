@@ -58,7 +58,11 @@ class App extends React.Component {
         return (
             <div>
                 {boxes}
-                <Portfolio key="empty" portfolio={empty} />
+                <Portfolio key="empty"
+                           portfolio={empty}
+                           onAdd={this.onPortfolioAdd}
+                           onDelete={this.onPortfolioDelete}
+                           onUpdate={this.onPortfolioUpdate} />
             </div>
         );
     }
@@ -191,14 +195,57 @@ class FilledPortfolio extends React.Component {
 }
 
 class EmptyPortfolio extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleNameChange = this.handleNameChange.bind(this);
+        this.handleAdd = this.handleAdd.bind(this);
+        this.state = {name: ""};
+    }
+
     render() {
+        const name = this.state.name;
+        var addButton = <div></div>;
+        if (name !== "") {
+            const iconStyle = {fontSize: "192px"};
+
+            addButton = (
+                <div className="addIconWrapper">
+                    <i className="fa fa-plus-circle addIcon"
+                       onClick={this.handleAdd}
+                       style={iconStyle} />
+                </div>
+            )
+        }
+
         return (
             <div className="col-6">
                 <div className="portfolio">
-                    <h1>New Portfolio</h1>
+                    <h1><input type="text"
+                               value={name}
+                               onChange={this.handleNameChange}
+                               placeholder="New portfolio" /></h1>
+                    {addButton}
                 </div>
             </div>
         );
+    }
+
+    handleNameChange(event) {
+        const name = event.target.value;
+        this.setState({name: name});
+    }
+
+    handleAdd() {
+        const name = this.state.name;
+        const portfolio = {
+            name: name,
+            currency: "eur",
+            stocks: []
+        }
+        this.props.onAdd(portfolio);
+
+        // Clear the input for the next portfolio.
+        this.setState({name: ""});
     }
 }
 

@@ -75,3 +75,13 @@ border: 1px solid;
 
     cursor: pointer;
 }
+
+.addIconWrapper {
+    width: 100%;
+    text-align: center;
+    margin-top: 70px;
+}
+
+.addIcon {
+    cursor: pointer;
+}
