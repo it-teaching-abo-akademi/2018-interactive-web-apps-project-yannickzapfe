@@ -42,8 +42,8 @@
 }
 
 .tableWrapper {
-    width: 80%;
-    margin-left: 10%;
+    width: 90%;
+    margin-left: 5%;
     max-height: 100px;
     overflow-y: auto;
 }
@@ -70,8 +70,8 @@ border: 1px solid;
 
 .closeIcon {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 10px;
+    right: 10px;
 
     cursor: pointer;
 }

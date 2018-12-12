@@ -33,7 +33,7 @@ let mock = {portfolios:
         }
     ]};
 
-let apiKey = "6RV3I3M11BQK941F";
+const apiKey = "6RV3I3M11BQK941F";
 
 class App extends React.Component {
     constructor(props) {
@@ -74,12 +74,8 @@ class App extends React.Component {
     }
 
     onPortfolioDelete(portfolio) {
-        console.log(portfolio);
-
         const portfolios = deletePortfolioInStorage(portfolio);
         this.setState({portfolios: portfolios});
-
-        console.log(portfolios);
     }
 }
 
@@ -103,7 +99,13 @@ class FilledPortfolio extends React.Component {
         this.onDelete = this.onDelete.bind(this);
         this.onUpdate = this.onUpdate.bind(this);
         this.onAddSubmit = this.onAddSubmit.bind(this);
-        this.state = {sum: 0, newEntry: {symbol: "", quantity: 0}};
+        this.onStockSelect = this.onStockSelect.bind(this);
+        this.onStockRemove = this.onStockRemove.bind(this);
+        this.state = {
+            sum: 0,
+            newEntry: {symbol: "", quantity: 0},
+            selected: []
+        };
     }
 
     render() {
@@ -113,7 +115,7 @@ class FilledPortfolio extends React.Component {
         const stocks = portfolio.stocks;
         const sum = this.state.sum;
 
-        const iconStyle = {fontSize: "36px"};
+        const iconStyle = {fontSize: "32px"};
 
         return (
             <div className="col-6">
@@ -121,21 +123,22 @@ class FilledPortfolio extends React.Component {
                     <h1>{name}</h1>
                     <i className="fa fa-times-circle closeIcon"
                        onClick={this.onDelete}
-                       style={iconStyle}></i>
+                       style={iconStyle} />
                     <StockTable stocks={stocks}
                                 onSumChange={this.onSumChange}
                                 onUpdate={this.onUpdate}
-                                newEntry={this.state.newEntry}/>
+                                newEntry={this.state.newEntry}
+                                onRowSelect={this.onStockSelect}
+                                selectedStocks={this.state.selected} />
                     <SumLine sum={sum} />
-                    <SubmitLine onAdd={this.onAddSubmit} />
+                    <SubmitLine onAdd={this.onAddSubmit}
+                                onRemove={this.onStockRemove} />
                 </div>
             </div>
         );
     }
 
     onSumChange(price) {
-        console.log("onSumChange execute");
-
         const sum = this.state.sum + price;
         this.setState({sum: sum});
     }
@@ -154,16 +157,36 @@ class FilledPortfolio extends React.Component {
         var newEntry = this.state.newEntry;
         const symbol = newEntry.symbol;
         const quantity = parseInt(newEntry.quantity);
+        newEntry = {name: symbol, quantity: quantity};
 
-        if (symbol !== "" && !isNaN(quantity) && quantity > 0) {
-            newEntry = {name: symbol, quantity: quantity};
-
+        var stockIsValid = addStockToPortfolio(newEntry, portfolio);
+        if (stockIsValid) {
             // Clear newEntry to create a new empty line.
             this.setState({newEntry: {symbol: "", quantity: 0}});
 
-            portfolio.stocks.push(newEntry);
             this.props.onUpdate(portfolio);
         }
+    }
+
+    onStockSelect(stock, selected, value) {
+        var selectedStocks = this.state.selected;
+        const index = selectedStocks.indexOf(stock);
+        if (index < 0 && selected) {
+            selectedStocks.push(stock);
+        } else if (index >= 0 && !selected) {
+            // Remove stock from selected list.
+            selectedStocks.splice(index, 1);
+        }
+
+        this.setState({selected: selectedStocks});
+    }
+
+    onStockRemove() {
+        var portfolio = this.props.portfolio;
+
+        removeStocksFromPortfolio(this.state.selected, portfolio);
+        this.setState({selected: []});
+        this.props.onUpdate(portfolio);
     }
 }
 
@@ -187,7 +210,11 @@ class StockTable extends React.Component {
     render() {
         const stocks = this.props.stocks;
         const rows = stocks.map((stock) =>
-            <StockTableRow key={stock.name} stock={stock} addPrice={this.props.onSumChange} />
+            <StockTableRow key={stock.name}
+                           stock={stock}
+                           addPrice={this.props.onSumChange}
+                           onSelect={this.props.onRowSelect}
+                           selected={this.props.selectedStocks.includes(stock)}/>
         );
         const newEntry = this.props.newEntry;
 
@@ -200,6 +227,7 @@ class StockTable extends React.Component {
                             <th>Unit value</th>
                             <th>Quantity</th>
                             <th>Total value</th>
+                            <th>Select</th>
                         </tr>
                         {rows}
                         <EmptyStockTableRow symbol={newEntry.symbol}
@@ -216,6 +244,7 @@ class StockTableRow extends React.Component {
     constructor(props) {
         super(props);
         this.setPrice = this.setPrice.bind(this);
+        this.onSelect = this.onSelect.bind(this);
         this.state = {price: 0};
     }
 
@@ -231,6 +260,7 @@ class StockTableRow extends React.Component {
                 <td>{price} $</td>
                 <td>{quantity}</td>
                 <td>{total} $</td>
+                <td><input type="checkbox" checked={this.props.selected} onChange={this.onSelect} /></td>
             </tr>
         );
     }
@@ -249,6 +279,15 @@ class StockTableRow extends React.Component {
         });
     }
 
+    componentWillUnmount() {
+        const price = this.state.price;
+        const quantity = this.props.stock.quantity;
+        const total = price * quantity;
+
+        // Subtract the value of the stock from the sum.
+        this.props.addPrice(-total);
+    }
+
     setPrice(data) {
         // Catch notes in case of overusing API.
         if (data["Note"])
@@ -260,12 +299,19 @@ class StockTableRow extends React.Component {
         if (isEmpty(quote))
             return;
 
-        const price = quote["05. price"];
+        // Retrieve and round price to two decimal places.
+        var price = Number(quote["05. price"]);
+        price = Number(price.toFixed(2));
+
         const quantity = this.props.stock.quantity;
         this.setState({price: price});
 
-        console.log("addPrice call.");
         this.props.addPrice(price * quantity);
+    }
+
+    onSelect(event) {
+        const total = this.state.price * this.props.stock.quantity;
+        this.props.onSelect(this.props.stock, event.target.checked, total);
     }
 }
 
@@ -324,7 +370,7 @@ class SubmitLine extends React.Component {
         return (
             <div>
                 <button onClick={this.props.onAdd}>Add stock</button>
-                <button>Remove selected</button>
+                <button onClick={this.props.onRemove}>Remove selected</button>
                 <button>Show graph</button>
             </div>
         )
@@ -352,4 +398,9 @@ function isEmpty(obj) {
 function onClickMock() {
     console.log("Close icon clicked.");
     return;
+}
+
+function currencyRound(val) {
+    var str = val.toFixed(2);
+    return Number(str);
 }
