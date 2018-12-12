@@ -101,7 +101,9 @@ class FilledPortfolio extends React.Component {
         super(props);
         this.onSumChange = this.onSumChange.bind(this);
         this.onDelete = this.onDelete.bind(this);
-        this.state = {sum: 0};
+        this.onUpdate = this.onUpdate.bind(this);
+        this.onAddSubmit = this.onAddSubmit.bind(this);
+        this.state = {sum: 0, newEntry: {symbol: "", quantity: 0}};
     }
 
     render() {
@@ -120,8 +122,12 @@ class FilledPortfolio extends React.Component {
                     <i className="fa fa-times-circle closeIcon"
                        onClick={this.onDelete}
                        style={iconStyle}></i>
-                    <StockTable stocks={stocks} onSumChange={this.onSumChange}/>
+                    <StockTable stocks={stocks}
+                                onSumChange={this.onSumChange}
+                                onUpdate={this.onUpdate}
+                                newEntry={this.state.newEntry}/>
                     <SumLine sum={sum} />
+                    <SubmitLine onAdd={this.onAddSubmit} />
                 </div>
             </div>
         );
@@ -137,6 +143,27 @@ class FilledPortfolio extends React.Component {
     onDelete() {
         const portfolio = this.props.portfolio;
         this.props.onDelete(portfolio);
+    }
+
+    onUpdate(newEntry) {
+        this.setState({newEntry: newEntry});
+    }
+
+    onAddSubmit() {
+        var portfolio = this.props.portfolio;
+        var newEntry = this.state.newEntry;
+        const symbol = newEntry.symbol;
+        const quantity = parseInt(newEntry.quantity);
+
+        if (symbol !== "" && !isNaN(quantity) && quantity > 0) {
+            newEntry = {name: symbol, quantity: quantity};
+
+            // Clear newEntry to create a new empty line.
+            this.setState({newEntry: {symbol: "", quantity: 0}});
+
+            portfolio.stocks.push(newEntry);
+            this.props.onUpdate(portfolio);
+        }
     }
 }
 
@@ -155,14 +182,14 @@ class EmptyPortfolio extends React.Component {
 class StockTable extends React.Component {
     constructor(props) {
         super(props);
-        this.addPrice = this.addPrice.bind(this);
     }
 
     render() {
         const stocks = this.props.stocks;
         const rows = stocks.map((stock) =>
-            <StockTableRow key={stock.name} stock={stock} addPrice={this.addPrice} />
+            <StockTableRow key={stock.name} stock={stock} addPrice={this.props.onSumChange} />
         );
+        const newEntry = this.props.newEntry;
 
         return (
             <div className="tableWrapper">
@@ -175,17 +202,13 @@ class StockTable extends React.Component {
                             <th>Total value</th>
                         </tr>
                         {rows}
+                        <EmptyStockTableRow symbol={newEntry.symbol}
+                                            quantity={newEntry.quantity}
+                                            onUpdate={this.props.onUpdate} />
                     </tbody>
                 </table>
             </div>
         );
-    }
-
-    addPrice(price) {
-        console.log("addPrice execute.");
-
-        console.log("onSumChange call.");
-        this.props.onSumChange(price);
     }
 }
 
@@ -213,8 +236,6 @@ class StockTableRow extends React.Component {
     }
 
     componentDidMount() {
-        // TODO: Implementation needs state to forward the current prices.
-
         const name = this.props.stock.name;
         var method = "GET",
             url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + name + "&apikey=" + apiKey,
@@ -248,6 +269,46 @@ class StockTableRow extends React.Component {
     }
 }
 
+class EmptyStockTableRow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onSymbolChange = this.onSymbolChange.bind(this);
+        this.onQuantityChange = this.onQuantityChange.bind(this);
+    }
+
+    render() {
+        const symbol = this.props.symbol;
+        const quantity = this.props.quantity;
+
+        return (
+            <tr>
+                <td><input type="text"
+                           value={symbol}
+                           onChange={this.onSymbolChange}
+                           placeholder="New symbol" /></td>
+                <td></td>
+                <td><input type="number" value={quantity} onChange={this.onQuantityChange}/></td>
+                <td></td>
+            </tr>
+        )
+    }
+
+    onSymbolChange(event) {
+        const symbol = event.target.value;
+        const quantity = this.props.quantity;
+        const newEntry = {symbol: symbol, quantity: quantity};
+        this.props.onUpdate(newEntry);
+    }
+
+    onQuantityChange(event) {
+        const symbol = this.props.symbol;
+        const quantity = event.target.value;
+
+        const newEntry = {symbol: symbol, quantity: quantity};
+        this.props.onUpdate(newEntry);
+    }
+}
+
 class SumLine extends React.Component {
     render() {
         const sum = this.props.sum;
@@ -255,6 +316,18 @@ class SumLine extends React.Component {
         return (
             <p>Total value of Portfolio: {sum} $</p>
         );
+    }
+}
+
+class SubmitLine extends React.Component {
+    render() {
+        return (
+            <div>
+                <button onClick={this.props.onAdd}>Add stock</button>
+                <button>Remove selected</button>
+                <button>Show graph</button>
+            </div>
+        )
     }
 }
 

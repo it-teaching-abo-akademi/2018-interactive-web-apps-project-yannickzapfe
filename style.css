@@ -56,12 +56,16 @@
     border: 1px solid;
 }
 
-.portfolio td {
+.portfolio th {
     border: 1px solid;
 }
 
-.portfolio th {
-    border: 1px solid;
+.portfolio td {
+border: 1px solid;
+}
+
+.portfolio input {
+    width: 100%;
 }
 
 .closeIcon {
