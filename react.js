@@ -18,7 +18,7 @@ let mock = {portfolios:
 
         {
             name: "Test 2",
-            currency: "usd",
+            currency: "eur",
             stocks: [
 
             ]
@@ -41,7 +41,8 @@ class App extends React.Component {
         this.onPortfolioAdd = this.onPortfolioAdd.bind(this);
         this.onPortfolioDelete = this.onPortfolioDelete.bind(this);
         this.onPortfolioUpdate = this.onPortfolioUpdate.bind(this);
-        this.state = {portfolios: getPortfoliosFromStorage()};
+        this.state = {portfolios: getPortfoliosFromStorage(), exchangeRate: 1};
+        this.setExchangeRate();
     }
 
     render() {
@@ -49,6 +50,7 @@ class App extends React.Component {
         const boxes = portfolios.map((portfolio) =>
             <Portfolio key={portfolio.name}
                        portfolio={portfolio}
+                       exchangeRate={this.state.exchangeRate}
                        onAdd={this.onPortfolioAdd}
                        onDelete={this.onPortfolioDelete}
                        onUpdate={this.onPortfolioUpdate}/>
@@ -81,6 +83,29 @@ class App extends React.Component {
         const portfolios = deletePortfolioInStorage(portfolio);
         this.setState({portfolios: portfolios});
     }
+
+    setExchangeRate() {
+        const method = "GET";
+        const url = "https://www.alphavantage.co/query?" +
+            "function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=EUR&apikey=" + apiKey;
+        const dataType = "json";
+
+        $.ajax({
+            method: method,
+            url: url,
+            dataType: dataType,
+            success: this.setExchangeRateFromData.bind(this)
+        });
+    }
+
+    setExchangeRateFromData(data) {
+        // Catch notes in case of overusing API.
+        if (data["Note"])
+            return;
+
+        const exchangeRate = data["Realtime Currency Exchange Rate"]["5. Exchange Rate"];
+        this.setState({exchangeRate: exchangeRate});
+    }
 }
 
 class Portfolio extends React.Component {
@@ -90,6 +115,7 @@ class Portfolio extends React.Component {
             return <EmptyPortfolio onAdd={this.props.onAdd}/>;
         } else {
             return <FilledPortfolio portfolio={portfolio}
+                                    exchangeRate={this.props.exchangeRate}
                                     onDelete={this.props.onDelete}
                                     onUpdate={this.props.onUpdate}/>;
         }
@@ -115,9 +141,18 @@ class FilledPortfolio extends React.Component {
     render() {
         const portfolio = this.props.portfolio;
         const name = portfolio.name;
+
         const currency = portfolio.currency;
+        const exchangeRate = this.props.exchangeRate;
+        let sum = this.state.sum;
+
+        console.log("Sum: " + ", rate: " + exchangeRate);
+
+        if (currency === "eur") {
+            sum *= exchangeRate;
+        }
+
         const stocks = portfolio.stocks;
-        const sum = this.state.sum;
 
         const iconStyle = {fontSize: "32px"};
 
@@ -129,12 +164,14 @@ class FilledPortfolio extends React.Component {
                        onClick={this.onDelete}
                        style={iconStyle} />
                     <StockTable stocks={stocks}
+                                currency={currency}
+                                exchangeRate={this.props.exchangeRate}
                                 onSumChange={this.onSumChange}
                                 onUpdate={this.onUpdate}
                                 newEntry={this.state.newEntry}
                                 onRowSelect={this.onStockSelect}
                                 selectedStocks={this.state.selected} />
-                    <SumLine sum={sum} />
+                    <SumLine sum={sum} currency={currency}/>
                     <SubmitLine onAdd={this.onAddSubmit}
                                 onRemove={this.onStockRemove} />
                 </div>
@@ -143,7 +180,9 @@ class FilledPortfolio extends React.Component {
     }
 
     onSumChange(price) {
+        console.log(price);
         const sum = this.state.sum + price;
+        console.log(sum);
         this.setState({sum: sum});
     }
 
@@ -259,6 +298,8 @@ class StockTable extends React.Component {
         const rows = stocks.map((stock) =>
             <StockTableRow key={stock.name}
                            stock={stock}
+                           currency={this.props.currency}
+                           exchangeRate={this.props.exchangeRate}
                            addPrice={this.props.onSumChange}
                            onSelect={this.props.onRowSelect}
                            selected={this.props.selectedStocks.includes(stock)}/>
@@ -298,15 +339,29 @@ class StockTableRow extends React.Component {
     render() {
         const name = this.props.stock.name;
         const quantity = this.props.stock.quantity;
-        const price = this.state.price;
-        const total = quantity * price;
+
+        let price = this.state.price;
+        let currency = this.props.currency;
+        const exchangeRate = this.props.exchangeRate;
+
+        let total = quantity * price;
+
+        if (currency === "eur") {
+            price = price * exchangeRate;
+            total = total * exchangeRate;
+        }
+
+        price = currencyRound(price);
+        total = currencyRound(total);
+
+        currency = getCurrencySymbol(currency);
 
         return (
             <tr>
                 <td>{name}</td>
-                <td>{price} $</td>
+                <td>{price} {currency}</td>
                 <td>{quantity}</td>
-                <td>{total} $</td>
+                <td>{total} {currency}</td>
                 <td><input type="checkbox" checked={this.props.selected} onChange={this.onSelect} /></td>
             </tr>
         );
@@ -314,7 +369,7 @@ class StockTableRow extends React.Component {
 
     componentDidMount() {
         const name = this.props.stock.name;
-        var method = "GET",
+        const method = "GET",
             url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + name + "&apikey=" + apiKey,
             dataType = "json";
 
@@ -347,12 +402,12 @@ class StockTableRow extends React.Component {
             return;
 
         // Retrieve and round price to two decimal places.
-        var price = Number(quote["05. price"]);
-        price = Number(price.toFixed(2));
+        const price = quote["05. price"];
 
         const quantity = this.props.stock.quantity;
         this.setState({price: price});
 
+        console.log(price*quantity);
         this.props.addPrice(price * quantity);
     }
 
@@ -404,10 +459,13 @@ class EmptyStockTableRow extends React.Component {
 
 class SumLine extends React.Component {
     render() {
-        const sum = this.props.sum;
+        const sum = currencyRound(this.props.sum);
+        const currency = getCurrencySymbol(this.props.currency);
+
+        console.log("Sum: " + this.props.sum);
 
         return (
-            <p>Total value of Portfolio: {sum} $</p>
+            <p>Total value of Portfolio: {sum} {currency}</p>
         );
     }
 }
@@ -448,6 +506,18 @@ function onClickMock() {
 }
 
 function currencyRound(val) {
+    val = Number(val);
     var str = val.toFixed(2);
     return Number(str);
+}
+
+function getCurrencySymbol(currency) {
+    switch (currency) {
+        case "eur":
+            return "€";
+        case "usd":
+            return "$";
+        default:
+            return "$";
+    }
 }
