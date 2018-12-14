@@ -46,11 +46,11 @@
     margin-left: 5%;
     max-height: 100px;
     overflow-y: auto;
+    overflow-x: auto;
 }
 
 .portfolio table {
     width: 100%;
-    table-layout: fixed;
 
     border-collapse: collapse;
     border: 1px solid;
@@ -61,7 +61,8 @@
 }
 
 .portfolio td {
-border: 1px solid;
+    border: 1px solid;
+    width: 20%;
 }
 
 .portfolio input {
