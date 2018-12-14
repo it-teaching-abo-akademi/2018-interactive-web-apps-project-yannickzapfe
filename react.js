@@ -438,9 +438,10 @@ class EmptyStockTableRow extends React.Component {
                            value={symbol}
                            onChange={this.onSymbolChange}
                            placeholder="New symbol" /></td>
-                <td></td>
+                <td/>
                 <td><input type="number" value={quantity} onChange={this.onQuantityChange}/></td>
-                <td></td>
+                <td/>
+                <td/>
             </tr>
         )
     }
