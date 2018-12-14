@@ -45,8 +45,7 @@
     width: 90%;
     margin-left: 5%;
     max-height: 100px;
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow: auto;
 }
 
 .portfolio table {
@@ -61,8 +60,10 @@
 }
 
 .portfolio td {
+    width: 20%;
+    min-width: 100px;
     border: 1px solid;
-    
+
 }
 
 .portfolio input {
