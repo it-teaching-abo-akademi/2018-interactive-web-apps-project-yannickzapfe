@@ -131,6 +131,7 @@ class FilledPortfolio extends React.Component {
         this.onAddSubmit = this.onAddSubmit.bind(this);
         this.onStockSelect = this.onStockSelect.bind(this);
         this.onStockRemove = this.onStockRemove.bind(this);
+        this.onCurrencySwitch = this.onCurrencySwitch.bind(this);
         this.state = {
             sum: 0,
             newEntry: {symbol: "", quantity: 0},
@@ -145,8 +146,6 @@ class FilledPortfolio extends React.Component {
         const currency = portfolio.currency;
         const exchangeRate = this.props.exchangeRate;
         let sum = this.state.sum;
-
-        console.log("Sum: " + ", rate: " + exchangeRate);
 
         if (currency === "eur") {
             sum *= exchangeRate;
@@ -173,16 +172,16 @@ class FilledPortfolio extends React.Component {
                                 selectedStocks={this.state.selected} />
                     <SumLine sum={sum} currency={currency}/>
                     <SubmitLine onAdd={this.onAddSubmit}
-                                onRemove={this.onStockRemove} />
+                                onRemove={this.onStockRemove}
+                                onCurrencySwitch={this.onCurrencySwitch}
+                                currency={currency} />
                 </div>
             </div>
         );
     }
 
     onSumChange(price) {
-        console.log(price);
         const sum = this.state.sum + price;
-        console.log(sum);
         this.setState({sum: sum});
     }
 
@@ -229,6 +228,12 @@ class FilledPortfolio extends React.Component {
 
         removeStocksFromPortfolio(this.state.selected, portfolio);
         this.setState({selected: []});
+        this.props.onUpdate(portfolio);
+    }
+
+    onCurrencySwitch() {
+        var portfolio = this.props.portfolio;
+        switchCurrencyInPortfolio(portfolio);
         this.props.onUpdate(portfolio);
     }
 }
@@ -407,7 +412,6 @@ class StockTableRow extends React.Component {
         const quantity = this.props.stock.quantity;
         this.setState({price: price});
 
-        console.log(price*quantity);
         this.props.addPrice(price * quantity);
     }
 
@@ -462,8 +466,6 @@ class SumLine extends React.Component {
         const sum = currencyRound(this.props.sum);
         const currency = getCurrencySymbol(this.props.currency);
 
-        console.log("Sum: " + this.props.sum);
-
         return (
             <p>Total value of Portfolio: {sum} {currency}</p>
         );
@@ -472,10 +474,18 @@ class SumLine extends React.Component {
 
 class SubmitLine extends React.Component {
     render() {
+        var currency = this.props.currency;
+        if (currency === "eur") {
+            currency = "$";
+        } else {
+            currency = "€";
+        }
+
         return (
             <div>
                 <button onClick={this.props.onAdd}>Add stock</button>
                 <button onClick={this.props.onRemove}>Remove selected</button>
+                <button onClick={this.props.onCurrencySwitch}>Show in {currency}</button>
                 <button>Show graph</button>
             </div>
         )

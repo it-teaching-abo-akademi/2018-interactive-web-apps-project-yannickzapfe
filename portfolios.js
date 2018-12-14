@@ -46,3 +46,15 @@ function removeStockFromPortfolio(stock, portfolio) {
         portfolio.stocks.splice(index, 1);
     }
 }
+
+function switchCurrencyInPortfolio(portfolio) {
+    if (portfolio.currency === "eur") {
+        setCurrencyInPortfolio("usd", portfolio);
+    } else if (portfolio.currency === "usd") {
+        setCurrencyInPortfolio("eur", portfolio);
+    }
+}
+
+function setCurrencyInPortfolio(currency, portfolio) {
+    portfolio.currency = currency;
+}
