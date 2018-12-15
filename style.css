@@ -44,7 +44,7 @@
 .tableWrapper {
     width: 90%;
     margin-left: 5%;
-    max-height: 100px;
+    max-height: 50%;
     overflow: auto;
 }
 

@@ -41,7 +41,11 @@ class App extends React.Component {
         this.onPortfolioAdd = this.onPortfolioAdd.bind(this);
         this.onPortfolioDelete = this.onPortfolioDelete.bind(this);
         this.onPortfolioUpdate = this.onPortfolioUpdate.bind(this);
-        this.state = {portfolios: getPortfoliosFromStorage(), exchangeRate: 1};
+        this.state = {
+            portfolios: getPortfoliosFromStorage(),
+            exchangeRate: 1,
+            popup: false
+        };
         this.setExchangeRate();
     }
 
@@ -181,8 +185,10 @@ class FilledPortfolio extends React.Component {
     }
 
     onSumChange(price) {
-        const sum = this.state.sum + price;
-        this.setState({sum: sum});
+        this.setState(currentState => {
+            currentState.sum += price;
+            return currentState;
+        });
     }
 
     onDelete() {
@@ -210,7 +216,7 @@ class FilledPortfolio extends React.Component {
         }
     }
 
-    onStockSelect(stock, selected, value) {
+    onStockSelect(stock, selected) {
         var selectedStocks = this.state.selected;
         const index = selectedStocks.indexOf(stock);
         if (index < 0 && selected) {
@@ -493,16 +499,14 @@ class SubmitLine extends React.Component {
     }
 }
 
-setPortfoliosInStorage(mock.portfolios);
+$(document).ready(function() {
+    setPortfoliosInStorage(mock.portfolios);
 
-const elem = (
-    <App />
-);
-
-ReactDOM.render(
-    elem,
-    document.getElementById("reactRoot")
-);
+    ReactDOM.render(
+        <App />,
+        document.getElementById("reactRoot")
+    );
+});
 
 /**
  * Checks if an object is empty.
