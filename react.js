@@ -33,6 +33,7 @@ let mock = {portfolios:
         }
     ]};
 
+// Key for the Alphavantage API.
 const apiKey = "6RV3I3M11BQK941F";
 
 class App extends React.Component {
@@ -41,10 +42,13 @@ class App extends React.Component {
         this.onPortfolioAdd = this.onPortfolioAdd.bind(this);
         this.onPortfolioDelete = this.onPortfolioDelete.bind(this);
         this.onPortfolioUpdate = this.onPortfolioUpdate.bind(this);
+        this.createPopup = this.createPopup.bind(this);
+        this.closePopup = this.closePopup.bind(this);
         this.state = {
             portfolios: getPortfoliosFromStorage(),
             exchangeRate: 1,
-            popup: false
+            popup: null,
+            popupSelected: []
         };
         this.setExchangeRate();
     }
@@ -57,18 +61,26 @@ class App extends React.Component {
                        exchangeRate={this.state.exchangeRate}
                        onAdd={this.onPortfolioAdd}
                        onDelete={this.onPortfolioDelete}
-                       onUpdate={this.onPortfolioUpdate}/>
+                       onUpdate={this.onPortfolioUpdate}
+                       onShowGraph={this.createPopup} />
         );
-        const empty ={};
+        const empty = {};
+        const popup = this.state.popup;
 
         return (
             <div>
+                <Header />
+
                 {boxes}
-                <Portfolio key="empty"
-                           portfolio={empty}
-                           onAdd={this.onPortfolioAdd}
-                           onDelete={this.onPortfolioDelete}
-                           onUpdate={this.onPortfolioUpdate} />
+                {portfolios.length < 10 ?
+                    <Portfolio key="empty"
+                               portfolio={empty}
+                               onAdd={this.onPortfolioAdd}
+                               onDelete={this.onPortfolioDelete}
+                               onUpdate={this.onPortfolioUpdate}
+                               onShowGraph={this.createPopup} /> : <div></div>}
+                {popup ? <GraphPopup portfolio={this.state.popup}
+                                     close={this.closePopup}/> : <div></div>}
             </div>
         );
     }
@@ -110,6 +122,28 @@ class App extends React.Component {
         const exchangeRate = data["Realtime Currency Exchange Rate"]["5. Exchange Rate"];
         this.setState({exchangeRate: exchangeRate});
     }
+
+    createPopup(portfolio, selected) {
+        this.setState(currentState => {
+            currentState.popup = portfolio;
+            currentState.popupSelected = selected;
+            return currentState;
+        })
+    }
+
+    closePopup() {
+        this.createPopup(null, []);
+    }
+}
+
+class Header extends React.Component {
+    render() {
+        return (
+            <div className="header">
+                Stock Portfolio Management
+            </div>
+        );
+    }
 }
 
 class Portfolio extends React.Component {
@@ -121,7 +155,8 @@ class Portfolio extends React.Component {
             return <FilledPortfolio portfolio={portfolio}
                                     exchangeRate={this.props.exchangeRate}
                                     onDelete={this.props.onDelete}
-                                    onUpdate={this.props.onUpdate}/>;
+                                    onUpdate={this.props.onUpdate}
+                                    onShowGraph={this.props.onShowGraph} />;
         }
     }
 }
@@ -136,9 +171,10 @@ class FilledPortfolio extends React.Component {
         this.onStockSelect = this.onStockSelect.bind(this);
         this.onStockRemove = this.onStockRemove.bind(this);
         this.onCurrencySwitch = this.onCurrencySwitch.bind(this);
+        this.onShowGraph = this.onShowGraph.bind(this);
         this.state = {
             sum: 0,
-            newEntry: {symbol: "", quantity: 0},
+            newEntry: {symbol: "", quantity: ""},
             selected: []
         };
     }
@@ -157,7 +193,7 @@ class FilledPortfolio extends React.Component {
 
         const stocks = portfolio.stocks;
 
-        const iconStyle = {fontSize: "32px"};
+        const iconStyle = {fontSize: "40px"};
 
         return (
             <div className="col-6">
@@ -174,11 +210,12 @@ class FilledPortfolio extends React.Component {
                                 newEntry={this.state.newEntry}
                                 onRowSelect={this.onStockSelect}
                                 selectedStocks={this.state.selected} />
-                    <SumLine sum={sum} currency={currency}/>
+                    <SumLine sum={sum} currency={currency} />
                     <SubmitLine onAdd={this.onAddSubmit}
                                 onRemove={this.onStockRemove}
                                 onCurrencySwitch={this.onCurrencySwitch}
-                                currency={currency} />
+                                currency={currency}
+                                onShowGraph={this.onShowGraph} />
                 </div>
             </div>
         );
@@ -216,17 +253,17 @@ class FilledPortfolio extends React.Component {
         }
     }
 
-    onStockSelect(stock, selected) {
-        var selectedStocks = this.state.selected;
-        const index = selectedStocks.indexOf(stock);
-        if (index < 0 && selected) {
-            selectedStocks.push(stock);
-        } else if (index >= 0 && !selected) {
-            // Remove stock from selected list.
-            selectedStocks.splice(index, 1);
-        }
-
-        this.setState({selected: selectedStocks});
+    onStockSelect(stock) {
+        this.setState(currentState => {
+            const index = currentState.selected.indexOf(stock);
+            if (index < 0) {
+                currentState.selected.push(stock);
+            } else if (index >= 0) {
+                // Remove stock from selected list.
+                currentState.selected.splice(index, 1);
+            }
+            return currentState;
+        });
     }
 
     onStockRemove() {
@@ -241,6 +278,10 @@ class FilledPortfolio extends React.Component {
         var portfolio = this.props.portfolio;
         switchCurrencyInPortfolio(portfolio);
         this.props.onUpdate(portfolio);
+    }
+
+    onShowGraph() {
+        this.props.onShowGraph(this.props.portfolio, this.state.selected);
     }
 }
 
@@ -269,11 +310,12 @@ class EmptyPortfolio extends React.Component {
 
         return (
             <div className="col-6">
-                <div className="portfolio">
-                    <h1><input type="text"
-                               value={name}
-                               onChange={this.handleNameChange}
-                               placeholder="New portfolio" /></h1>
+                <div className="newPortfolio">
+                    <input
+                           type="text"
+                           value={name}
+                           onChange={this.handleNameChange}
+                           placeholder="New portfolio" />
                     {addButton}
                 </div>
             </div>
@@ -329,9 +371,10 @@ class StockTable extends React.Component {
                             <th>Select</th>
                         </tr>
                         {rows}
-                        <EmptyStockTableRow symbol={newEntry.symbol}
-                                            quantity={newEntry.quantity}
-                                            onUpdate={this.props.onUpdate} />
+                        {stocks.length < 50 ?
+                            <EmptyStockTableRow symbol={newEntry.symbol}
+                                                quantity={newEntry.quantity}
+                                                onUpdate={this.props.onUpdate} /> : <div></div>}
                     </tbody>
                 </table>
             </div>
@@ -367,13 +410,20 @@ class StockTableRow extends React.Component {
 
         currency = getCurrencySymbol(currency);
 
+        let rowStyle = {};
+        if (this.props.selected) {
+            rowStyle = {
+                backgroundColor: "#88a0c9"
+            };
+        }
+
         return (
-            <tr>
+            <tr onClick={this.onSelect} style={rowStyle}>
                 <td>{name}</td>
                 <td>{price} {currency}</td>
                 <td>{quantity}</td>
                 <td>{total} {currency}</td>
-                <td><input type="checkbox" checked={this.props.selected} onChange={this.onSelect} /></td>
+                <td><input type="checkbox" checked={this.props.selected} /></td>
             </tr>
         );
     }
@@ -422,8 +472,7 @@ class StockTableRow extends React.Component {
     }
 
     onSelect(event) {
-        const total = this.state.price * this.props.stock.quantity;
-        this.props.onSelect(this.props.stock, event.target.checked, total);
+        this.props.onSelect(this.props.stock);
     }
 }
 
@@ -445,7 +494,10 @@ class EmptyStockTableRow extends React.Component {
                            onChange={this.onSymbolChange}
                            placeholder="New symbol" /></td>
                 <td/>
-                <td><input type="number" value={quantity} onChange={this.onQuantityChange}/></td>
+                <td><input type="text"
+                           value={quantity}
+                           onChange={this.onQuantityChange}
+                           placeholder="0" /></td>
                 <td/>
                 <td/>
             </tr>
@@ -462,6 +514,7 @@ class EmptyStockTableRow extends React.Component {
     onQuantityChange(event) {
         const symbol = this.props.symbol;
         const quantity = event.target.value;
+
 
         const newEntry = {symbol: symbol, quantity: quantity};
         this.props.onUpdate(newEntry);
@@ -493,19 +546,53 @@ class SubmitLine extends React.Component {
                 <button onClick={this.props.onAdd}>Add stock</button>
                 <button onClick={this.props.onRemove}>Remove selected</button>
                 <button onClick={this.props.onCurrencySwitch}>Show in {currency}</button>
-                <button>Show graph</button>
+                <button onClick={this.props.onShowGraph}>Show graph</button>
             </div>
         )
     }
 }
 
-$(document).ready(function() {
-    setPortfoliosInStorage(mock.portfolios);
+class GraphPopup extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            stocks: this.props.selected,
+            chartData: []
+        };
+    }
 
+    render() {
+        const portfolio = this.props.portfolio;
+
+        const iconStyle = {fontSize: "32px"};
+
+        return (
+            <div className="popupWrapper">
+                <div className="popup">
+                    <h1>{portfolio.name}</h1>
+                    <p>Not implemented.</p>
+                    <i className="fa fa-times-circle closeGraph"
+                       onClick={this.props.close}
+                       style={iconStyle} />
+                </div>
+            </div>
+        );
+    }
+}
+
+$(document).ready(function() {
     ReactDOM.render(
         <App />,
         document.getElementById("reactRoot")
     );
+
+    // Change close icon on hover.
+    $(".closeIcon").mouseover(function() {
+        $(this).removeClass("fa-times-circle").addClass("fa-close");
+    });
+    $(".closeIcon").mouseout(function() {
+        $(this).removeClass("fa-close").addClass("fa-times-circle");
+    });
 });
 
 /**

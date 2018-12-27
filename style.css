@@ -1,11 +1,12 @@
 * {
     box-sizing: border-box;
+    font-family:  "Times New Roman", serif;
 }
 
 /* Introduce columns. */
 [class*="col-"] {
     float: left;
-    padding: 10px;
+    padding: 20px;
     /* Full width for all elements on small screens. */
     width: 100%;
 }
@@ -15,6 +16,176 @@
     content: "";
     clear: both;
     display: table;
+}
+
+p {
+    color: #2D3142;
+    font-size: 20px;
+}
+
+.header {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 32px;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+    background-color: #2D3142;
+    color: white;
+    margin-bottom: 25px;
+}
+
+.portfolio {
+    position: relative;
+    border: solid 2px #2D3142;
+    padding: 10px;
+}
+
+.portfolio h1 {
+    margin: -10px -10px 25px -10px;
+    padding: 10px 60px 10px 5px;
+    background-color: #EF8354;
+    color: white;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+.closeIcon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+
+    cursor: pointer;
+
+    color: white;
+}
+
+.tableWrapper {
+    width: 90%;
+    margin-left: 5%;
+    margin-bottom: 30px;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.portfolio table {
+    width: 100%;
+
+    border-collapse: collapse;
+    border: 1px solid;
+
+    color: #2D3142;
+}
+
+.portfolio th {
+    border: 1px solid #2D3142;
+    background-color: #4F5D75;
+    color: white;
+    padding: 5px;
+}
+
+.portfolio td {
+    width: 20%;
+    min-width: 100px;
+    border: 1px solid;
+    padding: 5px;
+}
+
+.tableWrapper input {
+    border: none;
+    width: 100%;
+}
+
+.newPortfolio {
+    border: solid 2px #2D3142;
+    padding: 10px;
+}
+
+.newPortfolio input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #2D3142;
+
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 20px;
+}
+
+.portfolio button {
+    background: none;
+    border: solid 2px;
+    padding: 5px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+
+    color: #EF8354;
+    text-align: center;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 18px;
+
+    cursor: pointer;
+}
+
+.portfolio button:hover {
+    border: solid 2px #EF8354;
+    background-color: #EF8354;
+    color: white;
+}
+
+.portfolio button:active {
+    border: solid 2px #EF8354;
+    background-color: white;
+    color: #EF8354;
+}
+
+.addIconWrapper {
+    width: 100%;
+    text-align: center;
+    padding: 25px;
+}
+
+.addIcon {
+    cursor: pointer;
+    color: #BFC0C0;
+}
+
+.addIcon:hover {
+    color: #2D3142;
+}
+
+.popupWrapper {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+
+    background-color: rgba(0,0,0, 0.5);
+}
+
+.popup {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    left: 10%;
+    top: 10%;
+
+    background-color: white;
+
+    overflow: hidden;
+}
+
+.closeGraph {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+
+    cursor: pointer;
+
+    color: #2D3142;
+}
+
+.graphWrapper {
+    width: 50%;
+    float: right;
 }
 
 /* Changes for computer screens. */
@@ -33,57 +204,32 @@
     .col-10 {width: 83.33%;}
     .col-11 {width: 91.66%;}
     .col-12 {width: 100%;}
-}
 
-.portfolio {
-    position: relative;
-    height: 400px;
-    border: solid 1px;
-}
+    p {
+        font-size: 18px;
+    }
 
-.tableWrapper {
-    width: 90%;
-    margin-left: 5%;
-    max-height: 50%;
-    overflow: auto;
-}
+    .header {
+        font-size: 48px;
+    }
 
-.portfolio table {
-    width: 100%;
+    .portfolio {
 
-    border-collapse: collapse;
-    border: 1px solid;
-}
+    }
 
-.portfolio th {
-    border: 1px solid;
-}
+    .portfolio button {
+        font-size: 16px;
+    }
 
-.portfolio td {
-    width: 20%;
-    min-width: 100px;
-    border: 1px solid;
+    .portfolio th {
+        padding: 3px;
+    }
 
-}
+    .portfolio td {
+        padding: 3px;
+    }
 
-.portfolio input {
-    width: 100%;
-}
-
-.closeIcon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-
-    cursor: pointer;
-}
-
-.addIconWrapper {
-    width: 100%;
-    text-align: center;
-    margin-top: 70px;
-}
-
-.addIcon {
-    cursor: pointer;
+    .tableWrapper {
+        height: 220px;
+    }
 }
