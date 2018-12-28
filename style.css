@@ -11,28 +11,23 @@
     width: 100%;
 }
 
-/* Introduce rows. */
-.row::after {
-    content: "";
-    clear: both;
-    display: table;
-}
-
 p {
     color: #2D3142;
     font-size: 20px;
 }
 
 .header {
-    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-    font-size: 32px;
     width: 100%;
     padding: 20px;
-    text-align: center;
-    font-weight: bold;
+    margin-bottom: 25px;
+
     background-color: #2D3142;
     color: white;
-    margin-bottom: 25px;
+
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-size: 32px;
+    text-align: center;
+    font-weight: bold;
 }
 
 .portfolio {
@@ -42,10 +37,13 @@ p {
 }
 
 .portfolio h1 {
+    /* Overwrite padding from parent element. */
     margin: -10px -10px 25px -10px;
     padding: 10px 60px 10px 5px;
+
     background-color: #EF8354;
     color: white;
+
     font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
 
@@ -64,6 +62,8 @@ p {
     margin-left: 5%;
     margin-bottom: 30px;
     max-height: 400px;
+
+    /* Handle overflow of the wrapped table. */
     overflow: auto;
 }
 
@@ -78,9 +78,10 @@ p {
 
 .portfolio th {
     border: 1px solid #2D3142;
+    padding: 5px;
+
     background-color: #4F5D75;
     color: white;
-    padding: 5px;
 }
 
 .portfolio td {
@@ -91,8 +92,8 @@ p {
 }
 
 .tableWrapper input {
-    border: none;
     width: 100%;
+    border: none;
 }
 
 .newPortfolio {
@@ -110,16 +111,17 @@ p {
 }
 
 .portfolio button {
-    background: none;
     border: solid 2px;
     padding: 5px;
     margin-right: 10px;
     margin-bottom: 10px;
 
+    background: none;
     color: #EF8354;
-    text-align: center;
+
     font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     font-size: 18px;
+    text-align: center;
 
     cursor: pointer;
 }
@@ -138,13 +140,14 @@ p {
 
 .addIconWrapper {
     width: 100%;
-    text-align: center;
     padding: 25px;
+
+    text-align: center;
 }
 
 .addIcon {
-    cursor: pointer;
     color: #BFC0C0;
+    cursor: pointer;
 }
 
 .addIcon:hover {
@@ -158,6 +161,7 @@ p {
     top: 0;
     left: 0;
 
+    /* Grey out the background. */
     background-color: rgba(0,0,0, 0.5);
 }
 
@@ -169,8 +173,6 @@ p {
     top: 10%;
 
     background-color: white;
-
-    overflow: hidden;
 }
 
 .closeGraph {
@@ -181,11 +183,6 @@ p {
     cursor: pointer;
 
     color: #2D3142;
-}
-
-.graphWrapper {
-    width: 50%;
-    float: right;
 }
 
 /* Changes for computer screens. */
@@ -206,15 +203,13 @@ p {
     .col-12 {width: 100%;}
 
     p {
+        /* Smaller fonts on computers because user is more focussed. */
         font-size: 18px;
     }
 
     .header {
+        /* Bigger headline on computers. */
         font-size: 48px;
-    }
-
-    .portfolio {
-
     }
 
     .portfolio button {
@@ -222,6 +217,7 @@ p {
     }
 
     .portfolio th {
+        /* Smaller table rows on computers because a mouse is more precise than a finger. */
         padding: 3px;
     }
 
