@@ -25,22 +25,22 @@ function isStockAddable(stock, portfolio) {
 Check if a stock is valid.
  */
 function isStockValid(stock) {
-    const name = stock.name;
+    const symbol = stock.symbol;
     const quantity = stock.quantity;
 
-    // Stock has to have a name and a positive quantity.
-    return (name !== "" && !isNaN(quantity) && quantity > 0);
+    // Stock has to have a symbol and a positive quantity.
+    return (symbol !== "" && !isNaN(quantity) && quantity > 0);
 }
 
 /*
 Check if a stock is already in a portfolio.
  */
 function isStockInPortfolio(stock, portfolio) {
-    const name = stock.name;
+    const symbol = stock.symbol;
     const stocks = portfolio.stocks;
 
-    for (var i = 0; i < stocks.length; i++) {
-        if (stocks[i].name == name)
+    for (let i = 0; i < stocks.length; i++) {
+        if (stocks[i].symbol === symbol)
             return true;
     }
     return false;
@@ -50,7 +50,7 @@ function isStockInPortfolio(stock, portfolio) {
 Remove a list of stocks from a portfolio.
  */
 function removeStocksFromPortfolio(stocks, portfolio) {
-    for (var i = 0; i < stocks.length; i++) {
+    for (let i = 0; i < stocks.length; i++) {
         removeStockFromPortfolio(stocks[i], portfolio);
     }
 }

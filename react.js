@@ -132,7 +132,7 @@ class App extends React.Component {
     /*
     Set up the graph popup for rendering.
      */
-    createPopup(portfolio, selected) {
+    createPopup(portfolio) {
         this.setState(currentState => {
             currentState.popup = portfolio;
             return currentState;
@@ -286,7 +286,7 @@ class FilledPortfolio extends React.Component {
         let newEntry = this.state.newEntry;
         const symbol = newEntry.symbol;
         const quantity = parseInt(newEntry.quantity);
-        newEntry = {name: symbol, quantity: quantity};
+        newEntry = {symbol: symbol, quantity: quantity};
 
         // Try to add the new stock to the portfolio.
         let stockIsValid = addStockToPortfolio(newEntry, portfolio);
@@ -318,7 +318,7 @@ class FilledPortfolio extends React.Component {
     Remove selected stocks from the portfolio.
      */
     onStockRemove() {
-        var portfolio = this.props.portfolio;
+        let portfolio = this.props.portfolio;
 
         removeStocksFromPortfolio(this.state.selected, portfolio);
         this.setState({selected: []});
@@ -416,7 +416,7 @@ class StockTable extends React.Component {
         // Create table rows for each stock.
         const rows = stocks.map((stock) =>
             <StockTableRow
-                key={stock.name}
+                key={stock.symbol}
                 stock={stock}
                 currency={this.props.currency}
                 exchangeRate={this.props.exchangeRate}
@@ -433,7 +433,7 @@ class StockTable extends React.Component {
                 <table>
                     <tbody>
                         <tr>
-                            <th>Name</th>
+                            <th>Symbol</th>
                             <th>Unit value</th>
                             <th>Quantity</th>
                             <th>Total value</th>
@@ -465,7 +465,7 @@ class StockTableRow extends React.Component {
     }
 
     render() {
-        const name = this.props.stock.name;
+        const symbol = this.props.stock.symbol;
         const quantity = this.props.stock.quantity;
 
         let price = this.state.price;
@@ -492,7 +492,7 @@ class StockTableRow extends React.Component {
 
         return (
             <tr onClick={this.onSelect} style={rowStyle}>
-                <td>{name}</td>
+                <td>{symbol}</td>
                 <td>{price} {currency}</td>
                 <td>{quantity}</td>
                 <td>{total} {currency}</td>
@@ -502,9 +502,9 @@ class StockTableRow extends React.Component {
     }
 
     componentDidMount() {
-        const name = this.props.stock.name;
+        const symbol = this.props.stock.symbol;
         const method = "GET",
-            url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + name + "&apikey=" + apiKey,
+            url = "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" + symbol + "&apikey=" + apiKey,
             dataType = "json";
 
         /* Fetch current price of the stock on mounting. */
@@ -535,7 +535,7 @@ class StockTableRow extends React.Component {
 
         const quote = data["Global Quote"];
 
-        // Catch invalid stock name.
+        // Catch invalid stock symbol.
         if (isEmpty(quote)) {
             alert("This symbol does not belong to a stock.")
             return;
