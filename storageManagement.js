@@ -53,8 +53,15 @@ function deletePortfolioInStorage(portfolio) {
 Get and parse the portfolios from the local storage.
  */
 function getPortfoliosFromStorage() {
-    let portfolios = localStorage.getItem("portfolios");
-    return JSON.parse(portfolios);
+    if (typeof(Storage) !== "undefined") {
+        if (localStorage.getItem("portfolios")) {
+            let portfolios = localStorage.getItem("portfolios");
+            return JSON.parse(portfolios);
+        } else {
+            setPortfoliosInStorage([]);
+            return getPortfoliosFromStorage();
+        }
+    }
 }
 
 /*
